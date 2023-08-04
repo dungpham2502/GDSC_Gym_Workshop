@@ -11,7 +11,7 @@ export const WorkoutDetails = ({ workout }) => {
             return
         }
 
-        const response = await fetch(`http://localhost:3000/api/workouts/${workout._id}`, {
+        const response = await fetch(`https://mygym-api.onrender.com/api/workouts/${workout._id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${user.token}` }
         })
