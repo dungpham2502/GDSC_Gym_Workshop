@@ -1,51 +1,31 @@
 import { useState } from "react"
-import { useWorkoutsContext } from "../hooks/useWorkoutsContext";
-import { useAuthContext } from "../hooks/useAuthContext";
 
-export const WorkoutForm = () => {
-    const { dispatch } = useWorkoutsContext();
-    const [title, setTitle] = useState('');
-    const [load, setLoad] = useState(0);
-    const [reps, setReps] = useState(0);
-    const [sets, setSets] = useState(0);
-    const [error, setError] = useState(null);
-    const { user } = useAuthContext();
+export const WorkoutForm = ({onSave}) => {
+    const [formState, setFormState] = useState({
+        title: '',
+        sets: '',
+        reps: '',
+        load: ''
+    });
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormState(prevState => ({
+            ...prevState,
+            [name]: value
+        }));
+    }
 
-        if (!user) {
-            setError('You must be logged in');
-            return;
-        }
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave(formState);
 
-        const workout = {
-            title,
-            load,
-            reps,
-            sets
-        }
-        const response = await fetch('https://mygym-api.onrender.com/api/workouts/', {
-            method: 'POST',
-            body: JSON.stringify(workout),
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.token}` 
-            }
+        setFormState({
+            title: '',
+            sets: '',
+            reps: '',
+            load: ''
         })
-        const json = await response.json();
-
-        if (!response.ok) {
-            setError(json.error);
-        } else {
-            setTitle('');
-            setReps(0);
-            setSets(0);
-            setLoad(0);
-            setError(null);
-            console.log('New workout added', json);
-            dispatch({type: 'CREATE_WORKOUT', payload: json})
-        }
     }
 
     return (
@@ -54,33 +34,36 @@ export const WorkoutForm = () => {
             <label htmlFor="">Exercise Name:</label>
             <input
                 type="text"
-                onChange={(event) => setTitle(event.target.value)}
-                value = {title}
+                onChange={handleChange}
+                name="title"
+                value = {formState.title}
             />
 
             <label htmlFor="">Load (in KG):</label>
             <input
                 type="number"
-                onChange={(event) => setLoad(event.target.value)}
-                value = {load}
+                onChange={handleChange}
+                name="load"
+                value = {formState.load}
             />
 
             <label htmlFor="">Sets</label>
             <input
                 type="number"
-                onChange={(event) => setSets(event.target.value)}
-                value = {sets}
+                onChange={handleChange}
+                name="sets"
+                value = {formState.sets}
             />
 
             <label htmlFor="">Reps</label>
             <input
                 type="number"
-                onChange={(event) => setReps(event.target.value)}
-                value = {reps}
+                onChange={handleChange}
+                name="reps"
+                value = {formState.reps}
             />
 
             <button type="submit">Add Workout</button>
-            {error && <div className="error">{error}</div>}
         </form>
     )
 }

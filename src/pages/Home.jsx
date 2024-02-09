@@ -1,43 +1,26 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { WorkoutDetails } from "../components/WorkoutDetails";
 import { WorkoutForm } from "../components/WorkoutForm";
-import { useWorkoutsContext } from "../hooks/useWorkoutsContext";
-import { useAuthContext } from "../hooks/useAuthContext";
 
 export const Home = () => {
-    const { workouts, dispatch } = useWorkoutsContext();
-    const { user } = useAuthContext();
+    const [workouts, setWorkouts] = useState(() => {
+        const savedWorkouts = localStorage.getItem('workouts');
+        return savedWorkouts ? JSON.parse(savedWorkouts) : [];
+    })
 
-    useEffect(() => {
-    const fetchWorkout = async () => {
-        const response = await fetch('https://mygym-api.onrender.com/api/workouts/', {
-            headers: {'Authorization': `Bearer ${user.token}`}
-        });
-        const json = await response.json(); 
-        console.log(json);
-
-        if (response.ok) {
-            dispatch({ type: 'SET_WORKOUTS', payload: json });
-        }
-    };
-
-        if (user) {
-        fetchWorkout()
-    };
-  }, [dispatch, user]);
+    const saveWorkout = (workout) => {
+        const newWorkouts = [...workouts, workout];
+        setWorkouts(newWorkouts)
+        localStorage.setItem('workouts', JSON.stringify(newWorkouts));
+    }
 
     return (
         <div className="home">
             <div className="workouts">
-                {workouts && workouts.map((workout) => (
-                    <WorkoutDetails
-                        key={workout._id}
-                        workout={workout}
-                        />
-                ))}
+                <WorkoutDetails workouts={workouts} />
             </div>
             <div>
-                <WorkoutForm />
+                <WorkoutForm onSave={saveWorkout}/>
             </div>
         </div>
     )
